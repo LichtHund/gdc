@@ -1,0 +1,16 @@
+{
+  "appName": "Dung",
+  "description": "DungBung.",
+  "appUrl": "/",
+  "configUrl": "./appconfig.json",
+  "iconUrl": "./vite.svg",
+  "defaultWidth": 280,
+  "defaultHeight": 300,
+  "minWidth": 100,
+  "minHeight": 100,
+  "maxWidth": 304,
+  "maxHeight": 304,
+  "requestHandlers": [],
+  "activators": [],
+  "permissions": "gamestate,pixel"
+}

@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+    --font-sans: Poppins, sans-serif;
+    --color-dark-background-primary: #141417;
+    --color-dark-background-secondary: #202023;
+    --color-guideline: rgba(255, 255, 255, 0.4);
+    --color-map-tile: rgba(255, 255, 255, 0.22);
+}
+
+*:focus-visible {
+    outline: none !important;
+}
+
+body {
+    @apply bg-dark-background-primary text-white;
+}
+
+.map-tile:hover {
+    @apply bg-map-tile;
+}
+
+/* Remove the arrow from Radix UI. */
+.rt-BaseMenuShortcut {
+    display: none;
+}
+
+.drop-item {
+    transition: transform 0.1s linear;
+}
+
+.drop-item:hover {
+    transform: scale(1.2);
+}
