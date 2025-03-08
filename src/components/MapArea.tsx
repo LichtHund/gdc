@@ -1,12 +1,22 @@
 import {useEffect, useState} from "react"
 import * as altlib from "alt1"
 import MapTile from "./MapTile.tsx"
-import {TileType} from "../util/Tile.tsx"
+import {ColoredTile, EmptyTile} from "../util/Tile.tsx"
 
 export default function MapArea() {
 
   const [width, setWidth] = useState<number>(window.innerWidth)
   const [image, setImage] = useState<ImageData | null>(null)
+
+  const [grid, setGrid] = useState(Array<ColoredTile>(64).fill(EmptyTile))
+
+  const updateValue = (index: number, newValue: ColoredTile) => {
+    setGrid(prevArray => {
+      const newArray = [...prevArray] // Create a copy of the array
+      newArray[index] = newValue // Update the specific index
+      return newArray // Return the new array
+    })
+  }
 
   useEffect(() => {
     window.addEventListener("resize", () => setWidth(window.innerHeight))
@@ -25,7 +35,8 @@ export default function MapArea() {
   return (
     <>
       <div
-        className="overflow-hidden bg-dark-background-secondary w-full aspect-square p-2"
+        onContextMenu={(event) => event.preventDefault()}
+        className="overflow-hidden bg-dark-background-secondary w-full max-w-[300px] aspect-square p-2"
         style={
           {
             background: backgroundImage(),
@@ -34,8 +45,8 @@ export default function MapArea() {
       >
         <div className="border-guideline border w-full h-full grid grid-cols-8 gap-1">
           {
-            [...Array(64).keys()].map(key => (
-              <MapTile key={key} display={TileType.EMPTY}/>
+            grid.map((tile, index) => (
+              <MapTile display={tile} updateTile={(tile) => updateValue(index, tile)}/>
             ))
           }
         </div>

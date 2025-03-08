@@ -8,19 +8,31 @@ import {
   ShieldKey,
   TriangleKey, WedgeKey,
 } from "../components/Keys.tsx"
+import {KeyColor} from "./KeyColor.ts"
 
 export enum TileType {
-  EMPTY,
-  CORNER,
-  CRESCENT,
-  DIAMOND,
-  PENTAGON,
-  TRIANGLE,
-  RECTANGLE,
-  SHIELD,
-  WEDGE,
-  BLOCKED,
+  EMPTY = "empty",
+  CORNER = "corner",
+  CRESCENT = "crescent",
+  DIAMOND = "diamond",
+  PENTAGON = "pentagon",
+  TRIANGLE = "triangle",
+  RECTANGLE = "rectangle",
+  SHIELD = "shield",
+  WEDGE = "wedge",
+  BLOCKED = "blocked",
 }
+
+export const Keys = [
+  TileType.CORNER,
+  TileType.CRESCENT,
+  TileType.DIAMOND,
+  TileType.PENTAGON,
+  TileType.TRIANGLE,
+  TileType.RECTANGLE,
+  TileType.SHIELD,
+  TileType.WEDGE,
+]
 
 export interface Tile {
   components: { [key in TileType]: (color: string) => ReactElement };
@@ -28,7 +40,7 @@ export interface Tile {
 
 export const Tiles: Tile = {
   components: {
-    [TileType.EMPTY]: () =>  <></>,
+    [TileType.EMPTY]: () => <></>,
     [TileType.CORNER]: (color) => <CornerKey color={color}/>,
     [TileType.CRESCENT]: (color) => <CrescentKey color={color}/>,
     [TileType.DIAMOND]: (color) => <DiamondKey color={color}/>,
@@ -40,3 +52,10 @@ export const Tiles: Tile = {
     [TileType.BLOCKED]: () => <></>,
   },
 }
+
+export type ColoredTile = {
+  color: KeyColor | undefined,
+  tile: TileType,
+}
+
+export const EmptyTile: ColoredTile = {tile: TileType.EMPTY, color: undefined}

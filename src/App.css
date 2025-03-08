@@ -6,10 +6,14 @@
 
 @theme {
     --font-sans: Poppins, sans-serif;
-    --color-dark-background-primary: #141417;
-    --color-dark-background-secondary: #202023;
+    --color-dark-background-primary: #111111;
+    --color-dark-background-secondary: #232329;
     --color-guideline: rgba(255, 255, 255, 0.4);
     --color-map-tile: rgba(255, 255, 255, 0.22);
+}
+
+:root {
+    --speed: 500ms;
 }
 
 *:focus-visible {

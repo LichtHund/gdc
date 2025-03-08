@@ -1,65 +1,142 @@
-import {DropdownMenu} from "radix-ui"
-import {
-  CornerKey,
-  CrescentKey,
-  DiamondKey,
-  PentagonKey,
-  RectangleKey,
-  ShieldKey,
-  TriangleKey,
-  WedgeKey,
-} from "./Keys.tsx"
-import {Tiles, TileType} from "../util/Tile.tsx"
-import {KeyColor} from "../util/KeyColor.ts"
-import {useState} from "react"
+import {ColoredTile, EmptyTile, Keys, Tiles, TileType} from "../util/Tile.tsx"
+import {KeyColors} from "../util/KeyColor.ts"
+import {ReactNode, RefObject, useEffect, useRef, useState} from "react"
+import {CSSTransition} from "react-transition-group"
 
-export default function MapTile({display}: { display: TileType }) {
+export default function MapTile({display, updateTile}: {
+  display: ColoredTile,
+  updateTile: (tile: ColoredTile) => void
+}) {
 
-  const [mainOpen, setMainOpen] = useState(false)
+  const [open, setOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const component = Tiles.components[display]("red")
+  const toggle = () => setOpen(!open)
 
-  const closeMain = (open: boolean) => setMainOpen(open)
+  const component = Tiles.components[display.tile](display.color)
+
+  // When clicking outside the dropdown menu.
+  const handleClickOutside = (event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setOpen(false)
+    }
+  }
+
+  // When the window loses focus, for example, clicking on RuneScape.
+  const handleFocusLoss = () => setOpen(false)
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside)
+    window.addEventListener("blur", handleFocusLoss)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      window.addEventListener("blur", handleFocusLoss)
+    }
+  }, [])
 
   return (
-    <DropdownMenu.Root open={mainOpen} onOpenChange={closeMain}>
-      <DropdownMenu.Trigger>
-        <div className="map-tile rounded-xs w-full h-full" onClick={() => setMainOpen(prev => !prev)}>{component}</div>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content className="grid grid-cols-4 gap-2 bg-dark-background-secondary rounded-sm p-1">
-        <DropdownSubMenu onOpenChange={closeMain} type={TileType.CORNER}/>
-        <DropdownSubMenu onOpenChange={closeMain} type={TileType.CRESCENT}/>
-        <DropdownSubMenu onOpenChange={closeMain} type={TileType.DIAMOND}/>
-        <DropdownSubMenu onOpenChange={closeMain} type={TileType.PENTAGON}/>
-        <DropdownSubMenu onOpenChange={closeMain} type={TileType.TRIANGLE}/>
-        <DropdownSubMenu onOpenChange={closeMain} type={TileType.RECTANGLE}/>
-        <DropdownSubMenu onOpenChange={closeMain} type={TileType.SHIELD}/>
-        <DropdownSubMenu onOpenChange={closeMain} type={TileType.WEDGE}/>
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
+    <div>
+      <div
+        className="relative map-tile rounded-xs w-[30px] h-[30px] p-1"
+        onClick={toggle}
+        onContextMenu={() => updateTile(EmptyTile)}
+      >
+        {component}
+      </div>
+      {
+        open && <div ref={dropdownRef}><DropdownContent updateTile={updateTile} close={() => setOpen(false)}/></div>
+      }
+    </div>
   )
 }
 
-function DropdownItem({type}: { type: TileType }) {
-  const component = Tiles.components[type]("#fff")
-  return <DropdownMenu.Item className="drop-item w-6">{component}</DropdownMenu.Item>
-}
+function DropdownContent({updateTile, close}: { updateTile: (tile: ColoredTile) => void, close: () => void }) {
 
-function DropdownSubMenu({type, onOpenChange}: { type: TileType, onOpenChange: (open: boolean) => void }) {
-  const componentFactory = Tiles.components[type]
+  const [activeMenu, setActiveMenu] = useState("main")
+  const transitionRef = useRef<HTMLDivElement>(null)
 
-  const keys = Object.values(KeyColor).map(color => componentFactory(color))
+  function DropdownPageItem({type}: { type: TileType }) {
+    return (
+      <DropdownItem
+        onContextMenu={close}
+        onClick={() => setActiveMenu(type)}
+        type={type}
+        color="#fff"
+      />
+    )
+  }
 
   return (
-    <DropdownMenu.Root onOpenChange={onOpenChange}>
-      <DropdownMenu.Trigger className="drop-item w-6">{componentFactory("#fff")}</DropdownMenu.Trigger>
-      <DropdownMenu.Content className="flex flex-col bg-dark-background-secondary w-8 gap-2 rounded-sm p-1 z-50">
-        {
-          keys.map(key => <DropdownMenu.Item className="drop-item">{key}</DropdownMenu.Item>)
-        }
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
+    <>
+      {/* Main "page" of the dropdown with the base for keys and some direct tiles. */}
+      <DropdownPage className="grid-cols-4" active={() => activeMenu == "main"} reference={transitionRef}>
+        <DropdownPageItem type={TileType.CORNER}/>
+        <DropdownPageItem type={TileType.CRESCENT}/>
+        <DropdownPageItem type={TileType.DIAMOND}/>
+        <DropdownPageItem type={TileType.PENTAGON}/>
+        <DropdownPageItem type={TileType.TRIANGLE}/>
+        <DropdownPageItem type={TileType.RECTANGLE}/>
+        <DropdownPageItem type={TileType.SHIELD}/>
+        <DropdownPageItem type={TileType.WEDGE}/>
+        {/* <DropdownItem onClick={() => setActiveMenu(TileType.WEDGE)} type={TileType.WEDGE} color="#fff"/>
+        <DropdownItem onClick={() => setActiveMenu(TileType.WEDGE)} type={TileType.WEDGE} color="#fff"/>*/}
+      </DropdownPage>
+
+      {/* Colors "page" which is a single key tile with the possible colors. */}
+      {
+        Keys.map(key => (
+          <DropdownPage className="grid-cols-4" active={() => activeMenu == key} reference={transitionRef}>
+            {
+              KeyColors.map(color => (
+                <DropdownItem
+                  type={key}
+                  color={color}
+                  onClick={() => {
+                    updateTile({tile: key, color: color})
+                    close()
+                  }}
+                  onContextMenu={() => setActiveMenu("main")}
+                />
+              ))
+            }
+          </DropdownPage>
+        ))
+      }
+    </>
   )
 }
 
+function DropdownPage({reference, active, children, className}: {
+  reference: RefObject<HTMLDivElement | null>,
+  active: () => boolean,
+  children: ReactNode,
+  className: string,
+}) {
 
+  const classes = "absolute grid gap-2 overflow-hidden z-50 bg-dark-background-secondary rounded-sm p-2 " + className
+
+  return (
+    <CSSTransition
+      classNames="menu-primary"
+      nodeRef={reference}
+      in={active()}
+      timeout={300}
+      unmountOnExit
+    >
+      <div className={classes}>
+        {children}
+      </div>
+    </CSSTransition>
+  )
+}
+
+function DropdownItem({type, onClick, color, onContextMenu}: {
+                        type: TileType,
+                        onClick: () => void,
+                        onContextMenu: () => void,
+                        color: string
+                      },
+) {
+  const component = Tiles.components[type](color)
+  return <div className="drop-item w-6" onClick={onClick} onContextMenu={() => onContextMenu()}>{component}</div>
+}
