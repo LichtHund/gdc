@@ -43,14 +43,25 @@ export default function MapTile({display, updateTile}: {
       >
         {component}
       </div>
-      {
-        open && <div ref={dropdownRef}><DropdownContent updateTile={updateTile} close={() => setOpen(false)}/></div>
-      }
+      <CSSTransition
+        classNames="select"
+        nodeRef={dropdownRef}
+        in={open}
+        timeout={150}
+        unmountOnExit
+      >
+        <DropdownContent parentReference={dropdownRef} updateTile={updateTile} close={() => setOpen(false)}/>
+      </CSSTransition>
+
     </div>
   )
 }
 
-function DropdownContent({updateTile, close}: { updateTile: (tile: ColoredTile) => void, close: () => void }) {
+function DropdownContent({parentReference, updateTile, close}: {
+  parentReference: RefObject<HTMLDivElement | null>,
+  updateTile: (tile: ColoredTile) => void,
+  close: () => void
+}) {
 
   const [activeMenu, setActiveMenu] = useState("main")
   const transitionRef = useRef<HTMLDivElement>(null)
@@ -69,7 +80,8 @@ function DropdownContent({updateTile, close}: { updateTile: (tile: ColoredTile) 
   return (
     <>
       {/* Main "page" of the dropdown with the base for keys and some direct tiles. */}
-      <DropdownPage className="grid-cols-4" active={() => activeMenu == "main"} reference={transitionRef}>
+      <DropdownPage className="grid-cols-4" active={() => activeMenu == "main"} parentReference={parentReference}
+                    reference={transitionRef}>
         <DropdownPageItem type={TileType.CORNER}/>
         <DropdownPageItem type={TileType.CRESCENT}/>
         <DropdownPageItem type={TileType.DIAMOND}/>
@@ -106,8 +118,9 @@ function DropdownContent({updateTile, close}: { updateTile: (tile: ColoredTile) 
   )
 }
 
-function DropdownPage({reference, active, children, className}: {
+function DropdownPage({reference, parentReference, active, children, className}: {
   reference: RefObject<HTMLDivElement | null>,
+  parentReference?: RefObject<HTMLDivElement | null>,
   active: () => boolean,
   children: ReactNode,
   className: string,
@@ -123,7 +136,7 @@ function DropdownPage({reference, active, children, className}: {
       timeout={300}
       unmountOnExit
     >
-      <div className={classes}>
+      <div ref={parentReference} className={classes}>
         {children}
       </div>
     </CSSTransition>

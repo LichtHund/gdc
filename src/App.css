@@ -40,3 +40,23 @@ body {
 .drop-item:hover {
     transform: scale(1.2);
 }
+
+/** CSSTransition. */
+.select-enter {
+    max-height: 0;
+    overflow: hidden;
+}
+.select-enter-active {
+    max-height: 500px; /* Large enough to accommodate the content */
+    overflow: hidden;
+    transition: max-height 150ms ease-in-out;
+}
+.select-exit {
+    max-height: 500px; /* Same as the enter-active max-height */
+    overflow: hidden;
+}
+.select-exit-active {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 150ms ease-in-out;
+}
